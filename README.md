@@ -7,14 +7,13 @@
 ### Setup guide
 
 * Node version: v20.15.0
-* React version: 18.3.1
 
 Setup for developing on local
 
 ```
 cd /path/to/cloned/repository
 npm install
-npm run dev
+npm run test
 ```
 
 Demo url: https://interview-dice-game.vinaport.net/
