@@ -3,9 +3,9 @@ export type PlayerUnit = {
   name: string,
   point: number,
   keepingDices: string[],
-  prevPlayerId: null | string,
-  nextPlayerId: null | string,
-}
+  prevPlayerId: undefined | string,
+  nextPlayerId: undefined | string,
+};
 
 export type LayerList = Map<string, PlayerUnit>;
 
@@ -41,8 +41,8 @@ export class PlayerClass {
       name: `Player #${this.players.size + 1}`,
       point: 0,
       keepingDices: [],
-      prevPlayerId: null,
-      nextPlayerId: null,
+      prevPlayerId: undefined,
+      nextPlayerId: undefined,
     }
   }
 
@@ -58,28 +58,35 @@ export class PlayerClass {
     }
 
     // change the previous player data
-    const prevLayer = this.players.get(thePlayer.prevPlayerId);
+    const prevLayer = this.players.get(thePlayer.prevPlayerId as string);
 
     if (prevLayer) {
       prevLayer.nextPlayerId = thePlayer.nextPlayerId;
     }
 
     // change the next player data
-    const nextPlayer = this.players.get(thePlayer.nextPlayerId);
+    const nextPlayer = this.players.get(thePlayer.nextPlayerId as string);
 
     if (nextPlayer) {
       nextPlayer.prevPlayerId = thePlayer.prevPlayerId;
     }
 
     // change the current player
-    thePlayer.prevPlayerId = null;
-    thePlayer.nextPlayerId = null;
+    thePlayer.prevPlayerId = undefined;
+    thePlayer.nextPlayerId = undefined;
     thePlayer.keepingDices = [];
   }
 
   public availablePlayers(): Required<PlayerUnit>[] {
     return Array.from(this.players.entries())
-      .filter(([, o]) => o.nextPlayerId !== null)
+      .filter(([, o]) => o.nextPlayerId)
+      .map(([key, o]) => ({ ...o, key }))
+    ;
+  }
+
+  public releasedPlayers(): Required<PlayerUnit>[] {
+    return Array.from(this.players.entries())
+      .filter(([, o]) => !o.nextPlayerId)
       .map(([key, o]) => ({ ...o, key }))
     ;
   }
@@ -119,7 +126,7 @@ export class PlayerClass {
     return this.availablePlayers().length < 2;
   }
 
-  public getWinners(): PlayerUnit | PlayerUnit[] {
+  public getWinners(): PlayerUnit[] {
     const maxPoint = Math.max(
       ...Array.from(this.players.values()).map((o) => o.point)
     );

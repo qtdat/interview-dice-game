@@ -21,7 +21,7 @@ export class DiceClass {
     }
 
     do {
-      this.dices.set(`d#${this.dices.size + 1}`, { value: this.randomInt() });
+      this.dices.set(`d#${this.dices.size + 1}`, { value: 0 });
     } while (this.dices.size < this.length);
 
     return this.dices;

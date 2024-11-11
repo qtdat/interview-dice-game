@@ -1,31 +1,35 @@
 import { PlayerClass, PlayerUnit } from './PlayerClass';
 import { DiceClass } from './DiceClass';
 
-type HistoryUnit = {
+export type HistoryUnit = {
   playerName: string,
   point: number,
   dicesValue: number[],
 };
 
-type HistoryRow = HistoryUnit[];
+export type HistoryRow = HistoryUnit[];
 
 export class RoundClass {
   public objDice: DiceClass;
   public objPlayer: PlayerClass;
+  public MAX_AUTO_ROLL_STEP = 1000;
 
   constructor(
     protected players: number,
     protected dices: number,
   ) {
-    // init necessary properties
-    this.objDice = new DiceClass(this.players * this.dices);
     this.objPlayer = new PlayerClass(this.players);
+    this.objDice = new DiceClass(this.players * this.dices);
   }
 
   /**
    * init dice values
    */
   public startGame(): void {
+    if (this.players < 2 || this.dices < 1) {
+      return;
+    }
+
     this.objPlayer.initPlayersData(this.objDice.diceKeys());
   }
 
@@ -49,9 +53,11 @@ export class RoundClass {
     const reservedDiceIds: string[] = [];
 
     let firstPlayerId: undefined | string = undefined;
+    let lastPlayerId: undefined | string = undefined;
 
     // scan available players list
     this.objPlayer.availablePlayers().forEach((player, playerIdx) => {
+      // scan dices
       player.keepingDices.forEach((diceId) => {
         const [diceValue] = this.objDice.parseDiceValue(diceId);
 
@@ -70,6 +76,7 @@ export class RoundClass {
           reservedDiceIds.push(diceId);
         }
       });
+      // .scan dices
 
       // check and release previous player
       if (playerIdx > 0 && this.objPlayer.canRelease(player.prevPlayerId as string)) {
@@ -78,12 +85,18 @@ export class RoundClass {
 
       if (playerIdx === 0) {
         firstPlayerId = player.key;
+        lastPlayerId = player.prevPlayerId;
       }
     });
 
     // re-check first player that can release?
     if (firstPlayerId && this.objPlayer.canRelease(firstPlayerId)) {
       this.objPlayer.releaseThePlayer(firstPlayerId);
+    }
+
+    // re-check last player that can release?
+    if (lastPlayerId && this.objPlayer.canRelease(lastPlayerId)) {
+      this.objPlayer.releaseThePlayer(lastPlayerId);
     }
 
     return this.getState();
@@ -103,21 +116,20 @@ export class RoundClass {
       })
   }
 
+  public isFinished(): boolean {
+    return this.objPlayer.hadWinner();
+  }
+
   /**
    *
    */
-  public runUtilHavingWinners(): PlayerUnit | PlayerUnit[] {
+  public runUtilHavingWinners(): PlayerUnit[] {
     let roundCounter = 0;
-    const maxRound = 100;
 
-    while (!this.objPlayer.hadWinner()) {
-      roundCounter++;
+    while (!this.objPlayer.hadWinner() && roundCounter < this.MAX_AUTO_ROLL_STEP) {
       this.raiseRoll();
       this.evaluate();
-
-      if (roundCounter > maxRound) {
-        break;
-      }
+      roundCounter++;
     }
 
     return this.objPlayer.hadWinner() ? this.objPlayer.getWinners() : [];

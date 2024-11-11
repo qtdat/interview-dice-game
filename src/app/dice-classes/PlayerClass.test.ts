@@ -8,8 +8,8 @@ test('release a layer without the list', () => {
   const playerList = oPlayer.getLayers();
 
   // current
-  expect(playerList.get('p#3')?.prevPlayerId).toBeNull();
-  expect(playerList.get('p#3')?.nextPlayerId).toBeNull();
+  expect(playerList.get('p#3')?.prevPlayerId).toBeUndefined();
+  expect(playerList.get('p#3')?.nextPlayerId).toBeUndefined();
 
   // prev
   expect(playerList.get('p#2')?.prevPlayerId).toEqual('p#1');

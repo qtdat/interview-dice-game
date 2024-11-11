@@ -16,11 +16,6 @@ test('run round until having winner', () => {
   });
 
   // test winners number
-  if (Array.isArray(winners)) {
-    expect(winners.filter(({ point }) => point === maxPoint)).toHaveLength(winners.length);
-  } else {
-    expect(winners.point).toEqual(maxPoint);
-  }
-  // .test winners number
+  expect(winners.filter(({ point }) => point === maxPoint)).toHaveLength(winners.length);
 });
 
